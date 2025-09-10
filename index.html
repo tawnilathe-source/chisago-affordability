@@ -23,15 +23,12 @@
   .row{margin-bottom:12px}
   .range{width:100%}
   input[type="range"]{accent-color:var(--blue)}
-  input[type="number"], select{
-    width:100%;padding:10px;border:1px solid var(--border);border-radius:12px;color:var(--text);
-  }
   .minmax{display:flex;justify-content:space-between;font-size:11px;opacity:.8}
   .pill{display:inline-block;border:1px solid var(--border);padding:6px 10px;border-radius:999px;
         font-size:13px;margin-right:8px;cursor:pointer;background:var(--white);color:var(--text)}
   .pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
   .kv{display:flex;justify-content:space-between;background:var(--muted);padding:8px 12px;border-radius:10px;font-size:14px;margin-bottom:6px}
-  .cta{width:100%;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:12px;
+  .cta{display:inline-block;text-align:center;width:100%;background:var(--blue);color:#fff;text-decoration:none;border:none;border-radius:12px;padding:12px;
        font-weight:600;cursor:pointer}
   .hint{font-size:11px;opacity:.8}
   .big{font-size:34px;font-weight:800}
@@ -39,21 +36,20 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>How much house can I afford in Chisago Lakes, MN?</h1>
-    <p class="hint">Move the sliders—your estimate updates instantly. Taxes, insurance, and PMI are included when applicable.</p>
+    <h1>How much house can I afford in Minnesota</h1>
 
     <div class="grid">
       <!-- Controls -->
       <div class="card">
         <div class="row">
           <div class="label">Household income (before tax)</div>
-          <input id="income" type="range" min="20000" max="300000" step="1000" value="100000" class="range">
-          <div class="minmax"><span id="incomeVal"></span><span>$300,000</span></div>
+          <input id="income" type="range" min="20000" max="1000000" step="1000" value="100000" class="range">
+          <div class="minmax"><span id="incomeVal"></span><span>$1,000,000</span></div>
         </div>
 
         <div class="row">
           <div class="label">Other monthly debts</div>
-          <input id="debts" type="range" min="0" max="3000" step="25" value="300" class="range">
+          <input id="debts" type="range" min="0" max="3000" step="25" value="0" class="range">
           <div class="minmax"><span>$0</span><span id="debtsVal"></span></div>
           <div class="hint">Car loans, student loans, credit card minimums.</div>
         </div>
@@ -76,35 +72,24 @@
           <div class="label">Down payment (%)</div>
           <input id="down" type="range" min="0" max="30" step="0.5" value="5" class="range">
           <div class="minmax"><span>0%</span><span id="downVal"></span></div>
-          <div class="hint">Default 5% (adjust if you plan to put more down).</div>
+          <div class="hint">Default 5% — adjust if you plan to put more down.</div>
         </div>
 
-        <div class="row">
-          <div class="label">Property tax (% of price / yr)</div>
-          <input id="tax" type="range" min="0.5" max="2.0" step="0.05" value="1.05" class="range">
-          <div class="minmax"><span>0.5%</span><span id="taxVal"></span></div>
-        </div>
-
-        <div class="row">
-          <div class="label">Homeowners insurance (% of price / yr)</div>
-          <input id="ins" type="range" min="0.2" max="1.2" step="0.05" value="0.70" class="range">
-          <div class="minmax"><span>0.2%</span><span id="insVal"></span></div>
-        </div>
-
-        <div class="row">
-          <div class="label">PMI (% of loan / yr if &lt; 20% down)</div>
-          <input id="pmi" type="range" min="0.4" max="1.8" step="0.05" value="0.80" class="range">
-          <div class="minmax"><span>0.4%</span><span id="pmiVal"></span></div>
-        </div>
-
+        <!-- HOA remains adjustable -->
         <div class="row">
           <div class="label">HOA (monthly)</div>
           <input id="hoa" type="range" min="0" max="600" step="10" value="0" class="range">
           <div class="minmax"><span>$0</span><span id="hoaVal"></span></div>
         </div>
 
-        <button class="cta" id="leadBtn">Get a custom approval &amp; local listings</button>
-        <p class="hint">Educational estimate only. Actual approvals vary by credit, program, reserves, and property.</p>
+        <!-- Lead button scrolls to Squarespace form -->
+        <a id="leadBtn"
+           href="https://leonhardtteam.com/mn-affordability-calculator#get-a-custom-approval"
+           target="_top"
+           class="cta">
+          Get a custom approval &amp; local listings
+        </a>
+        <p class="hint">We’ll use typical guidelines. Actual approvals vary by credit, program, reserves, and property.</p>
       </div>
 
       <!-- Results -->
@@ -119,7 +104,8 @@
         <div class="kv"><span>Homeowners insurance</span><span id="insOut">$0</span></div>
         <div class="kv"><span>PMI</span><span id="pmiOut">$0</span></div>
         <div class="kv"><span>HOA</span><span id="hoaOut">$0</span></div>
-        <div class="kv" style="font-weight:700"><span>Total PITI + HOA</span><span id="total">$0</span></div>
+        <div class="kv" style="font-weight:700"><span>Estimated monthly payment</span><span id="total">$0</span></div>
+        <p class="hint">Using area averages for taxes, insurance, and PMI.</p>
         <p class="hint" id="status"></p>
       </div>
     </div>
@@ -133,22 +119,23 @@
   const monthlyRate = apr => apr/100/12;
   const pmt = (r,n,pv) => r===0 ? pv/n : (pv*r)/(1-Math.pow(1+r,-n));
 
+  // Area averages (Minnesota)
+  const TAX_PCT = 1.05;   // % of price / year
+  const INS_PCT = 0.70;   // % of price / year
+  const PMI_PCT = 0.80;   // % of loan / year if <20% down
+
   // --- Elements
   const el = id => document.getElementById(id);
-  const inputs = ['income','debts','rate','down','tax','ins','pmi','hoa'].map(el);
+  const inputs = ['income','debts','rate','down','hoa'].map(el);
   const termButtons = Array.from(document.querySelectorAll('.pill'));
   let term = 30; // years
   const frontDTI = 28, backDTI = 36;
 
   function recalc(){
-    // read values
     const income = +el('income').value;
     const debts  = +el('debts').value;
     const rate   = +el('rate').value;
     const downPct= +el('down').value;
-    const taxPct = +el('tax').value;
-    const insPct = +el('ins').value;
-    const pmiPct = +el('pmi').value;
     const hoa    = +el('hoa').value;
 
     // UI mirrors
@@ -156,9 +143,6 @@
     el('debtsVal').textContent  = fmt0(debts);
     el('rateVal').textContent   = pct(rate);
     el('downVal').textContent   = downPct.toFixed(1) + '%';
-    el('taxVal').textContent    = taxPct.toFixed(2) + '%';
-    el('insVal').textContent    = insPct.toFixed(2) + '%';
-    el('pmiVal').textContent    = pmiPct.toFixed(2) + '%';
     el('hoaVal').textContent    = fmt0(hoa);
 
     const months = term*12;
@@ -173,9 +157,9 @@
       const down = price*(downPct/100);
       const loan = Math.max(0, price - down);
       const pi   = pmt(mr, months, loan);
-      const tax  = (price*(taxPct/100))/12;
-      const ins  = (price*(insPct/100))/12;
-      const pmi  = downPct < 20 ? (loan*(pmiPct/100))/12 : 0;
+      const tax  = (price*(TAX_PCT/100))/12;
+      const ins  = (price*(INS_PCT/100))/12;
+      const pmi  = downPct < 20 ? (loan*(PMI_PCT/100))/12 : 0;
       const piti = pi + tax + ins + pmi;
       const total= piti + hoa;
       return {down, loan, pi, tax, ins, pmi, total};
@@ -209,7 +193,6 @@
         : "This fits common guidelines. A lender can fine-tune approval based on credit and program.";
   }
 
-  // events
   inputs.forEach(i=>i.addEventListener('input', recalc));
   termButtons.forEach(b=>{
     b.addEventListener('click', ()=>{
@@ -219,9 +202,7 @@
       recalc();
     });
   });
-  el('leadBtn').addEventListener('click', ()=>alert("Pop lead form here (hook to your CRM)."));
 
-  // initial render
   recalc();
 </script>
 </body>
