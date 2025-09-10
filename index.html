@@ -220,15 +220,18 @@
 
   recalc();
 
-  // --- NEW: Pass calculator price to Squarespace form as query string
-  document.getElementById('leadBtn').addEventListener('click', function(e){
-    e.preventDefault();
-    const priceText = document.getElementById('price').textContent.replace(/[^0-9]/g,'');
-    const price = parseInt(priceText,10);
-    const baseUrl = "https://leonhardtteam.com/mn-affordability-calculator#get-a-custom-approval";
-    const url = baseUrl + "?price=" + price;
-    window.top.location.href = url;
-  });
+// --- FIXED: put ?price BEFORE #anchor
+document.getElementById('leadBtn').addEventListener('click', function(e){
+  e.preventDefault();
+  const priceText = document.getElementById('price').textContent.replace(/[^0-9]/g,'');
+  const price = parseInt(priceText || '0', 10);
+
+  const base = "https://leonhardtteam.com/mn-affordability-calculator";
+  const anchor = "get-a-custom-approval"; // your section/anchor id
+  const url = `${base}?price=${encodeURIComponent(price)}#${anchor}`;
+
+  window.top.location.href = url; // navigate the parent page
+});
 </script>
 </body>
 </html>
