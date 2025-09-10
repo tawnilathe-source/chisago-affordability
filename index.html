@@ -29,7 +29,7 @@
 
   /* Centered CTA button */
   .cta{
-    display:flex;                 /* center horizontally & vertically */
+    display:flex;
     align-items:center;
     justify-content:center;
     width:100%;
@@ -101,7 +101,7 @@
            href="https://leonhardtteam.com/mn-affordability-calculator#get-a-custom-approval"
            target="_top"
            class="cta">
-          Send me homes in my price range
+          Show me homes in my price range
         </a>
         <p class="hint">We’ll use typical guidelines. Actual approvals vary by credit, program, reserves, and property.</p>
       </div>
@@ -219,6 +219,16 @@
   });
 
   recalc();
+
+  // --- NEW: Pass calculator price to Squarespace form as query string
+  document.getElementById('leadBtn').addEventListener('click', function(e){
+    e.preventDefault();
+    const priceText = document.getElementById('price').textContent.replace(/[^0-9]/g,'');
+    const price = parseInt(priceText,10);
+    const baseUrl = "https://leonhardtteam.com/mn-affordability-calculator#get-a-custom-approval";
+    const url = baseUrl + "?price=" + price;
+    window.top.location.href = url;
+  });
 </script>
 </body>
 </html>
