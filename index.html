@@ -6,14 +6,13 @@
 <title>Chisago Lakes Home Affordability</title>
 <style>
   :root{
-    --blue:#486fb7;        /* buttons & sliders */
-    --text:#333a56;        /* text on white */
+    --blue:#486fb7;
+    --text:#333a56;
     --white:#ffffff;
     --muted:#f3f4f6;
     --border:#e5e7eb;
   }
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-       background:var(--white);color:var(--text);}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--white);color:var(--text);}
   .wrap{max-width:1100px;margin:auto;padding:24px;}
   h1{margin:0 0 8px;font-size:28px}
   .grid{display:grid;gap:16px}
@@ -24,19 +23,17 @@
   .range{width:100%}
   input[type="range"]{accent-color:var(--blue)}
   .minmax{display:flex;justify-content:space-between;font-size:11px;opacity:.8}
-  .pill{display:inline-block;border:1px solid var(--border);padding:6px 10px;border-radius:999px;
-        font-size:13px;margin-right:8px;cursor:pointer;background:var(--white);color:var(--text)}
+  .pill{display:inline-block;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:13px;margin-right:8px;cursor:pointer;background:var(--white);color:var(--text)}
   .pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
   .kv{display:flex;justify-content:space-between;background:var(--muted);padding:8px 12px;border-radius:10px;font-size:14px;margin-bottom:6px}
-  .cta{display:inline-block;text-align:center;width:100%;background:var(--blue);color:#fff;text-decoration:none;border:none;border-radius:12px;padding:12px;
-       font-weight:600;cursor:pointer}
+  .cta{display:block;width:100%;box-sizing:border-box;background:var(--blue);color:#fff;text-decoration:none;border:none;border-radius:12px;padding:12px;font-weight:600;cursor:pointer}
   .hint{font-size:11px;opacity:.8}
   .big{font-size:34px;font-weight:800}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>How much house can I afford in Minnesota</h1>
+    <h1>How much house can <em>you</em> afford in Minnesota?</h1>
 
     <div class="grid">
       <!-- Controls -->
@@ -129,7 +126,9 @@
   const inputs = ['income','debts','rate','down','hoa'].map(el);
   const termButtons = Array.from(document.querySelectorAll('.pill'));
   let term = 30; // years
-  const frontDTI = 28, backDTI = 36;
+
+  // Back-end only DTI cap (36%)
+  const BACK_DTI = 36;
 
   function recalc(){
     const income = +el('income').value;
@@ -149,9 +148,8 @@
     const mr = monthlyRate(rate);
 
     const grossMonthly = income/12;
-    const maxHousingFront = grossMonthly*(frontDTI/100);
-    const maxHousingBack  = Math.max(0, grossMonthly*(backDTI/100) - debts);
-    const cap = Math.min(maxHousingFront, maxHousingBack);
+    // Back-end cap only: housing + other debts <= 36% of income
+    const cap = Math.max(0, grossMonthly*(BACK_DTI/100) - debts);
 
     function compute(price){
       const down = price*(downPct/100);
@@ -166,11 +164,11 @@
     }
 
     // binary search max price so total <= cap
-    let lo=50000, hi=1500000, best=compute(50000);
+    let lo=50000, hi=1500000;
     for(let i=0;i<48;i++){
       const mid=(lo+hi)/2;
       const c=compute(mid);
-      if(c.total>cap) hi=mid; else { lo=mid; best=c; }
+      if(c.total>cap) hi=mid; else lo=mid;
     }
     const price = lo;
     const c = compute(price);
